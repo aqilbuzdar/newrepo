@@ -1,0 +1,45 @@
+<launch>
+    <!-- Load the robot's URDF description -->
+    <param name="robot_description" command="xacro '$(find my_bot)/urdf/my_bot.urdf.xacro'"/>
+
+    <!-- Start the joint state publisher GUI for Gazebo -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    
+    </node>
+    <!-- Launch Gazebo with your world file -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <!-- Specify the path to your world file -->
+        <arg name="world_name" value="$(find my_bot)/worlds/your_world.world"/>
+        <arg name="paused" value="false"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="true"/>
+        <arg name="headless" value="false"/>
+        <arg name="debug" value="false"/>
+    </include>
+
+    <!-- Spawn your robot model in Gazebo -->
+    <node name="spawning_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model my_bot -param robot_description"/>
+
+    <!-- Convert joint states to TF transforms for RViz -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+        respawn="false" output="screen">
+    </node>
+
+    <!-- Launch RPLidar -->
+    <node name="rplidarNode" pkg="rplidar_ros" type="rplidarNode" output="screen">
+        <param name="serial_port" type="string" value="/dev/ttyUSB0"/>
+        <param name="serial_baudrate" type="int" value="115200"/><!-- Adjust if needed -->
+        <param name="frame_id" type="string" value="laser"/>
+        <param name="inverted" type="bool" value="false"/>
+        <param name="angle_compensate" type="bool" value="true"/>
+    </node>
+
+    <!-- Launch ROS serial for Arduino communication -->
+    <node name="rosserial" pkg="rosserial_python" type="serial_node.py" output="screen">
+        <param name="port" type="string" value="/dev/ttyACM0"/>
+        <param name="baud" type="int" value="57600"/>
+    </node>
+
+   
+    
+</launch>
